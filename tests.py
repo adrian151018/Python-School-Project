@@ -1,3 +1,7 @@
+# This file is for testing the changed code while
+# in the main file is the code that works.
+# Just in case i get too far in modifying the main
+# but the code doesnt work and i cant find the working code.
 import pygame
 import math
 from obstacles import Obstacle
