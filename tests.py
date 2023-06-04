@@ -1,12 +1,8 @@
-# This file is for testing the changed code while
-# in the main file is the code that works.
-# Just in case i get too far in modifying the main
-# but the code doesnt work and i cant find the working code. 
 import pygame
 import math
-import random
 from obstacles import Obstacle
 from character import Bike
+from functions import game_over, get_score
 
 pygame.init()
 
@@ -14,12 +10,11 @@ pygame.init()
 WIDTH, HEIGHT = 1000, 500
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Adrian's game")
+font = pygame.font.SysFont("comicsansms", 35)
 
 # setting up background image
 background = pygame.image.load("mountains.png").convert_alpha()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
-frame = (0, 0)
-window.blit(background, (0, 0))
 background_width = background.get_width()
 tiles = math.ceil(WIDTH / background_width + 2)
 SCROLL = 0
@@ -29,72 +24,79 @@ FPS = 60
 clock = pygame.time.Clock()
 
 # making a Bike object which would be our "character"
-movingbike = pygame.sprite.Group()
+movingbike = pygame.sprite.GroupSingle()
 bike = Bike(30, 275)
 movingbike.add(bike)
-movingbike.draw(window)
 moving = False
 jumping = False
 GRAVITY = 1
 JUMP_HEIGHT = 20
 JUMP_SPEED = JUMP_HEIGHT
+score = 0
 
 # making obstacles
 obstacles = pygame.sprite.Group()
-log = Obstacle("log.png", background_width, 330)
+log = Obstacle("log.png",  700, 330)
+log2 = Obstacle("log.png", 1700, 330)
 obstacles.add(log)
-log_frame = log.rect.topleft
+obstacles.add(log2)
 
 # main loop
 running = True
+enabled = True
 while running:
     clock.tick(FPS)
     # event handler
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                moving = True
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_RIGHT:
-                moving = False
-        if event.type == pygame.KEYDOWN and not jumping:
-            if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
-                jumping = True
+        if enabled:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    moving = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT:
+                    moving = False
+            if event.type == pygame.KEYDOWN and not jumping:
+                if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
+                    jumping = True
 
-           
+    # Drawing the background, obstacles and bike.
+    for i in range(0, tiles):
+        window.blit(background, (i * background_width + SCROLL, 0))
+        obstacles.draw(window)
+        log.update_pos(700 + SCROLL)
+        log2.update_pos(1700 + SCROLL)
+    movingbike.draw(window)
+    get_score(window, font, score)
 
-    # checking for pressed arrow key and
-    # starting background and "character" animation
+    # Checking for collision between the bike's right side and the log's left side
+    if bike.rect.colliderect(log.rect):
+        game_over(window, font, score)
+        enabled = False
+        moving = False
+        jumping = False
+
+    # Checking for pressed arrow key and changing the
+    # variables responsible for the movement(scrolling effect)
+    # of the background, objects and bike
     if moving:
-        for i in range(0, tiles):
-            window.blit(background, (i * background_width + SCROLL, 0))
-            obstacles.draw(window)
-            frame = ((background_width + SCROLL), 0)
-            log_frame = log.rect.topleft
-            log.update_pos(i * background_width + SCROLL)
-
-        SCROLL -= 8
+        draw_background = True
+        SCROLL -= 9
         if abs(SCROLL) > background_width:
             SCROLL = 0
-
-        movingbike.draw(window)
         movingbike.update(0.3)
 
-    # checking for pressed space or arrow up
+    # Checking for pressed space or arrow up
     # and starting jumping mechanics
     if jumping:
         bike.rect.y -= JUMP_SPEED
         JUMP_SPEED -= GRAVITY
-        if not moving:
-            window.blit(background, frame)
-            window.blit(log.image, log_frame)
-            movingbike.draw(window)
         if JUMP_SPEED < -JUMP_HEIGHT:
             jumping = False
-            JUMP_SPEED = JUMP_HEIGHT 
+            JUMP_SPEED = JUMP_HEIGHT
+            score += 1
 
-    # updating the display
+     # Updating the display
     pygame.display.update()
 pygame.quit()
