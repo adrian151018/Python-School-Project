@@ -1,3 +1,7 @@
+# This file is for testing the changed code while
+# in the main file is the code that works.
+# Just in case i get too far in modifying the main
+# but the code doesnt work and i cant find the working code. 
 import pygame
 import math
 import random
@@ -14,7 +18,7 @@ pygame.display.set_caption("Adrian's game")
 # setting up background image
 background = pygame.image.load("mountains.png").convert_alpha()
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
-
+frame = (0, 0)
 window.blit(background, (0, 0))
 background_width = background.get_width()
 tiles = math.ceil(WIDTH / background_width + 2)
@@ -37,8 +41,9 @@ JUMP_SPEED = JUMP_HEIGHT
 
 # making obstacles
 obstacles = pygame.sprite.Group()
-log = Obstacle("log.png", random.randrange(300, WIDTH), 330)
+log = Obstacle("log.png", background_width, 330)
 obstacles.add(log)
+log_frame = log.rect.topleft
 
 # main loop
 running = True
@@ -58,12 +63,16 @@ while running:
             if event.key == pygame.K_SPACE or event.key == pygame.K_UP:
                 jumping = True
 
+           
+
     # checking for pressed arrow key and
     # starting background and "character" animation
     if moving:
         for i in range(0, tiles):
             window.blit(background, (i * background_width + SCROLL, 0))
             obstacles.draw(window)
+            frame = ((background_width + SCROLL), 0)
+            log_frame = log.rect.topleft
             log.update_pos(i * background_width + SCROLL)
 
         SCROLL -= 8
@@ -78,11 +87,14 @@ while running:
     if jumping:
         bike.rect.y -= JUMP_SPEED
         JUMP_SPEED -= GRAVITY
+        if not moving:
+            window.blit(background, frame)
+            window.blit(log.image, log_frame)
+            movingbike.draw(window)
         if JUMP_SPEED < -JUMP_HEIGHT:
             jumping = False
-            JUMP_SPEED = JUMP_HEIGHT
+            JUMP_SPEED = JUMP_HEIGHT 
 
     # updating the display
     pygame.display.update()
-
 pygame.quit()
