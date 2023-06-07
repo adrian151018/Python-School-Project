@@ -18,6 +18,7 @@ background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 background_width = background.get_width()
 tiles = math.ceil(WIDTH / background_width + 1)
 SCROLL = 0
+SPEED = 9
 
 # setting up clock and FPS
 FPS = 60
@@ -55,7 +56,7 @@ def menu():
     while menurun:
         if deaths:
             menu_text = font.render("Press any key to restart", True, (0, 0, 0))  # White color for the text
-            score_text = font.render("Your Score: " + str(score), True, (0, 0, 0))
+            score_text = font.render("Your Score: " + str(round(score) - 1), True, (0, 0, 0))
             score_text_rect = score_text.get_rect(center = (WIDTH // 2, HEIGHT // 2 + 50))
             window.blit(score_text, score_text_rect)
         else:
@@ -73,7 +74,6 @@ def menu():
                 menurun = False
 
 menu()
-
 
 running = True
 enabled = True
@@ -100,6 +100,7 @@ while running and not endprogram:# main loop
         deaths = True
         enabled = False
         moving = False
+        pygame.time.delay(500)
         menu()
         score = 0
         enabled = True
@@ -108,7 +109,7 @@ while running and not endprogram:# main loop
         continue
     if moving:
         draw_background = True
-        SCROLL -= 9
+        SCROLL -= SPEED
         if abs(SCROLL) > background_width:
             SCROLL = 0
         movingbike.update(0.3)
@@ -119,8 +120,10 @@ while running and not endprogram:# main loop
         if JUMP_SPEED < -JUMP_HEIGHT:
             jumping = False
             JUMP_SPEED = JUMP_HEIGHT
-            if bike.rect.colliderect((trigger_zone_x, trigger_zone_y, trigger_zone_width, trigger_zone_height)):
-                score += 1
+
+    score += 0.5
+    if score % 1000 == 0:
+        SPEED += 1
 
     pygame.display.update()# Updating the display
 pygame.quit()
